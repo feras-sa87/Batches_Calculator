@@ -1,9 +1,10 @@
 package com.example.batchescalculator
 
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -60,7 +63,7 @@ class MainActivity : ComponentActivity() {
 fun BatchesCalculatorScreen() {
     Column(
         modifier = Modifier
-            .padding(start = 32.dp, end = 32.dp, bottom = 32.dp, top = 75.dp)
+            .padding(start = 32.dp, end = 32.dp, bottom = 32.dp, top = 40.dp)
             .fillMaxSize(),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -106,7 +109,6 @@ fun EditTextFieldsAndResult() {
     }
 
     val ingredientRequired = (totalBatchesWeight / (unitWeightInput.toDoubleOrNull() ?: 0.0))
-    Log.d("TAG", "ingredientRequired $ingredientRequired ")
 
     var availableIngredientInput by remember {
         mutableStateOf("")
@@ -114,7 +116,6 @@ fun EditTextFieldsAndResult() {
 
     val availableIngredient =
         (availableIngredientInput.toIntOrNull() ?: 0) * (unitWeightInput.toDoubleOrNull() ?: 0.0)
-    Log.d("TAG", "availableIngredient $availableIngredient ")
 
     var isErrorBatches by remember {
         mutableStateOf(false)
@@ -131,6 +132,8 @@ fun EditTextFieldsAndResult() {
     var isErrorAvailableIngredients by remember {
         mutableStateOf(false)
     }
+
+    val context = LocalContext.current
 
     @Composable
     fun isError(isError: Boolean, isUnitWeight: Boolean = false) {
@@ -209,11 +212,36 @@ fun EditTextFieldsAndResult() {
                 unitWeightInput = ""
             }
         },
-        supportingText = { isError(isErrorUnitWeight, true) },
+        supportingText = {
+            if (isErrorUnitWeight) isError(
+                isError = true, isUnitWeight = true
+            ) else Text(
+                text = "Press the calculator icon to convert the entered lb value to kg",
+                fontSize = 10.sp
+            )
+        },
         trailingIcon = {
             if (isErrorUnitWeight) {
                 Icon(Icons.Filled.Info, "error", tint = MaterialTheme.colorScheme.error)
             }
+        },
+        leadingIcon = {
+            Icon(painter = painterResource(id = R.drawable.baseline_calculate_24),
+                contentDescription = "Calculator Icon",
+                modifier = Modifier.clickable {
+                        if (unitWeightInput.isEmpty()) {
+                            return@clickable
+                        } else {
+                            val unitWeightInKg = ((unitWeightInput.toDoubleOrNull() ?: 0.0) * 0.45)
+                            val formattedNumber = String.format("%.2f", unitWeightInKg).toDouble()
+                            Toast.makeText(
+                                    context,
+                                    "Unit weight is $formattedNumber kg",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            unitWeightInput = formattedNumber.toString()
+                        }
+                    })
         },
         label = { Text("Unit weight (kg)") },
         singleLine = true,
@@ -253,8 +281,8 @@ fun EditTextFieldsAndResult() {
     )
 
     val requiredAmount =
-        if (totalBatchesWeight != 0.0 && unitWeightInput.isNotEmpty()) "You need ${ingredientRequired.roundToInt()} units or $totalBatchesWeight kg"
-        else if (totalBatchesWeight != 0.0 && unitWeightInput.isEmpty()) "You need $totalBatchesWeight kg"
+        if (totalBatchesWeight != 0.0 && unitWeightInput.isNotEmpty()) "You need ${ingredientRequired.roundToInt()} units or ${totalBatchesWeight.roundToInt()} kg"
+        else if (totalBatchesWeight != 0.0 && unitWeightInput.isEmpty()) "You need ${totalBatchesWeight.roundToInt()} kg"
         else ""
 
     val batchesCanBeDone =
