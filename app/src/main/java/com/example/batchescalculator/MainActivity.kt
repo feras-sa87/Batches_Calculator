@@ -98,7 +98,7 @@ fun EditTextFieldsAndResult() {
     }
 
     val totalBatchesWeight =
-        (120 * (batchesRequiredInput.toIntOrNull() ?: 0) * (portionWeightInput.toIntOrNull()
+        (120 * (batchesRequiredInput.toDoubleOrNull() ?: 0.0) * (portionWeightInput.toIntOrNull()
             ?: 0)) / 1000.0
 
     val batchWeight = (120 * (portionWeightInput.toIntOrNull() ?: 0)) / 1000.0
@@ -136,9 +136,9 @@ fun EditTextFieldsAndResult() {
     val context = LocalContext.current
 
     @Composable
-    fun isError(isError: Boolean, isUnitWeight: Boolean = false) {
+    fun isError(isError: Boolean, isUnitWeight: Boolean = false, isBatches: Boolean = false) {
         if (isError) {
-            if (isUnitWeight) {
+            if (isUnitWeight || isBatches) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = "Limit 5 digits",
@@ -155,7 +155,7 @@ fun EditTextFieldsAndResult() {
     }
 
     fun validate() {
-        isErrorBatches = batchesRequiredInput.length > 3
+        isErrorBatches = batchesRequiredInput.length > 5
         isErrorPortionWeight = portionWeightInput.length > 3
         isErrorUnitWeight = unitWeightInput.length > 5
         isErrorAvailableIngredients = availableIngredientInput.length > 3
@@ -167,7 +167,7 @@ fun EditTextFieldsAndResult() {
         if (isErrorBatches) {
             batchesRequiredInput = ""
         }
-    }, supportingText = { isError(isErrorBatches) }, trailingIcon = {
+    }, supportingText = { isError(isErrorBatches, isBatches = true) }, trailingIcon = {
         if (isErrorBatches) {
             Icon(Icons.Filled.Info, "error", tint = MaterialTheme.colorScheme.error)
         }
