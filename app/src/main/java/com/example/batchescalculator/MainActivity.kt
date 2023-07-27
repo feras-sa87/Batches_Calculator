@@ -41,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.batchescalculator.ui.theme.BatchesCalculatorTheme
-import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -280,13 +279,17 @@ fun EditTextFieldsAndResult() {
             .padding(bottom = 4.dp)
     )
 
+    fun numberFormatter(number: Double): String {
+        return String.format("%.2f", number)
+    }
+
     val requiredAmount =
-        if (totalBatchesWeight != 0.0 && unitWeightInput.isNotEmpty()) "You need ${ingredientRequired.roundToInt()} units or ${totalBatchesWeight.roundToInt()} kg"
-        else if (totalBatchesWeight != 0.0 && unitWeightInput.isEmpty()) "You need ${totalBatchesWeight.roundToInt()} kg"
+        if (totalBatchesWeight != 0.0 && unitWeightInput.isNotEmpty()) "You need ${numberFormatter(ingredientRequired)} units or ${numberFormatter(totalBatchesWeight)} kg"
+        else if (totalBatchesWeight != 0.0 && unitWeightInput.isEmpty()) "You need ${numberFormatter(totalBatchesWeight)} kg"
         else ""
 
     val batchesCanBeDone =
-        if (availableIngredient != 0.0 && batchWeight != 0.0) "You can make ${(availableIngredient / batchWeight).roundToInt()} batches"
+        if (availableIngredient != 0.0 && batchWeight != 0.0) "You can make ${numberFormatter(availableIngredient / batchWeight)} batches"
         else ""
 
     Text(
