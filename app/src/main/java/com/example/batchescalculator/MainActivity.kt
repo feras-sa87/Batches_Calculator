@@ -75,7 +75,7 @@ fun BatchesCalculatorScreen() {
         )
         EditTextFieldsAndResult()
         Text(
-            text = "Made with ❤️ by FERAS",
+            text = "Made with ❤️ by Feras",
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
