@@ -1,5 +1,7 @@
 package com.example.batchescalculator
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -12,11 +14,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -40,7 +42,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import com.example.batchescalculator.ui.theme.BatchesCalculatorTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,7 +89,6 @@ fun BatchesCalculatorScreen() {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTextFieldsAndResult() {
     var batchesRequiredInput by remember {
@@ -177,7 +180,8 @@ fun EditTextFieldsAndResult() {
         .padding(bottom = 4.dp)
     )
 
-    OutlinedTextField(isError = isErrorPortionWeight,
+    OutlinedTextField(
+        isError = isErrorPortionWeight,
         value = portionWeightInput,
         onValueChange = {
             portionWeightInput = it
@@ -202,7 +206,8 @@ fun EditTextFieldsAndResult() {
             .padding(bottom = 4.dp)
     )
 
-    OutlinedTextField(isError = isErrorUnitWeight,
+    OutlinedTextField(
+        isError = isErrorUnitWeight,
         value = unitWeightInput,
         onValueChange = {
             unitWeightInput = it
@@ -215,32 +220,62 @@ fun EditTextFieldsAndResult() {
             if (isErrorUnitWeight) isError(
                 isError = true, isUnitWeight = true
             ) else Text(
-                text = "Press the calculator icon to convert the entered lb value to kg",
+                text = "Press the kg icon to convert the entered lb value to kg",
                 fontSize = 10.sp
             )
         },
         trailingIcon = {
+            val context = LocalContext.current
             if (isErrorUnitWeight) {
                 Icon(Icons.Filled.Info, "error", tint = MaterialTheme.colorScheme.error)
+            } else {
+                Icon(painter = painterResource(id = R.drawable.baseline_calculate_24),
+                    contentDescription = "Calculator Icon",
+                    modifier = Modifier
+                        .clickable {
+                            val calculatorIntent = Intent(Intent.ACTION_MAIN).apply {
+                                addCategory(Intent.CATEGORY_APP_CALCULATOR)
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            }
+                            try {
+                                startActivity(context, calculatorIntent, null)
+                            } catch (e: ActivityNotFoundException) {
+                                // Calculator app not found; handle exception
+                                Toast.makeText(
+                                    context,
+                                    "Calculator app not found",
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                            }
+
+                        })
             }
         },
         leadingIcon = {
-            Icon(painter = painterResource(id = R.drawable.baseline_calculate_24),
+            Icon(painter = painterResource(id = R.drawable.kg),
                 contentDescription = "Calculator Icon",
-                modifier = Modifier.clickable {
+                modifier = Modifier
+                    .clickable {
                         if (unitWeightInput.isEmpty()) {
                             return@clickable
                         } else {
-                            val unitWeightInKg = ((unitWeightInput.toDoubleOrNull() ?: 0.0) * 0.45)
-                            val formattedNumber = String.format("%.2f", unitWeightInKg).toDouble()
-                            Toast.makeText(
+                            val unitWeightInKg =
+                                ((unitWeightInput.toDoubleOrNull() ?: 0.0) * 0.45)
+                            val formattedNumber = String
+                                .format("%.2f", unitWeightInKg)
+                                .toDouble()
+                            Toast
+                                .makeText(
                                     context,
                                     "Unit weight is $formattedNumber kg",
                                     Toast.LENGTH_SHORT
-                                ).show()
+                                )
+                                .show()
                             unitWeightInput = formattedNumber.toString()
                         }
-                    })
+                    }
+                    .size(24.dp))
         },
         label = { Text("Unit weight (kg)") },
         singleLine = true,
@@ -254,7 +289,8 @@ fun EditTextFieldsAndResult() {
 
     Spacer(modifier = Modifier.height(18.dp))
 
-    OutlinedTextField(isError = isErrorAvailableIngredients,
+    OutlinedTextField(
+        isError = isErrorAvailableIngredients,
         value = availableIngredientInput,
         onValueChange = {
             availableIngredientInput = it
@@ -284,12 +320,24 @@ fun EditTextFieldsAndResult() {
     }
 
     val requiredAmount =
-        if (totalBatchesWeight != 0.0 && unitWeightInput.isNotEmpty()) "You need ${numberFormatter(ingredientRequired)} units or ${numberFormatter(totalBatchesWeight)} kg"
-        else if (totalBatchesWeight != 0.0 && unitWeightInput.isEmpty()) "You need ${numberFormatter(totalBatchesWeight)} kg"
+        if (totalBatchesWeight != 0.0 && unitWeightInput.isNotEmpty()) "You need ${
+            numberFormatter(
+                ingredientRequired
+            )
+        } units or ${numberFormatter(totalBatchesWeight)} kg"
+        else if (totalBatchesWeight != 0.0 && unitWeightInput.isEmpty()) "You need ${
+            numberFormatter(
+                totalBatchesWeight
+            )
+        } kg"
         else ""
 
     val batchesCanBeDone =
-        if (availableIngredient != 0.0 && batchWeight != 0.0) "You can make ${numberFormatter(availableIngredient / batchWeight)} batches"
+        if (availableIngredient != 0.0 && batchWeight != 0.0) "You can make ${
+            numberFormatter(
+                availableIngredient / batchWeight
+            )
+        } batches"
         else ""
 
     Text(
